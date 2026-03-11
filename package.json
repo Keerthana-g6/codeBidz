@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
+    "bullmq": "^5.70.4",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "redis": "^5.11.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "xss-clean": "^0.1.4",
+    "zod": "^4.3.6"
+  }
+}
