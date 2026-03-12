@@ -3,16 +3,16 @@ const zodValidate = (schema) => (req, res, next) => {
     req.body = schema.parse(req.body);
     next();
   } catch (err) {
-    if (err.errors) {
+    if (err.errors || err.issues) {
       return res.status(400).json({
         message: 'Validation failed',
-        errors: err.errors.map(e => ({
+        errors: (err.errors || err.issues).map(e => ({
           field: e.path.join('.'),
           message: e.message,
         }))
       });
     }
-    next(err);
+    return res.status(400).json({ message: 'Invalid request data' });
   }
 };
 

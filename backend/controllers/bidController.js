@@ -3,6 +3,7 @@ const bidRepository = require('../repositories/bidRepository');
 const auctionRepository = require('../repositories/auctionRepository');
 const userRepository = require('../repositories/userRepository');
 const logger = require('../utils/logger');
+const { bidsTotal } = require('../utils/metrics');
 
 exports.placeBid = async (req, res, next) => {
   try {
@@ -23,6 +24,7 @@ exports.placeBid = async (req, res, next) => {
     }
 
     logger.info({ auctionId, userId: req.user._id, amount }, 'Bid placed');
+    bidsTotal.inc();
     res.status(201).json(result);
   } catch (err) { next(err); }
 };

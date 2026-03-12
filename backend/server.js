@@ -11,7 +11,11 @@ const swaggerSpec = require('./swagger');
 const { connectRedis } = require('./config/redis');
 const connectDB = require('./config/db');
 const logger = require('./utils/logger');
+const metrics = require('./utils/metrics');
 require('dotenv').config();
+if (process.argv[1] && process.argv[1].includes('jest')) {
+  process.env.NODE_ENV = 'test';
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -30,6 +34,14 @@ app.use(helmet({
 }));
 app.use(express.json());
 app.use(mongoSanitize());
+// Track API latency
+app.use((req, res, next) => {
+  const end = metrics.apiLatency.startTimer();
+  res.on('finish', () => {
+    end({ method: req.method, route: req.path, status: res.statusCode });
+  });
+  next();
+});
 
 // Rate limiting
 const generalLimiter = rateLimit({
@@ -76,6 +88,15 @@ require('./jobs/auctionJobs')(io);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'OK', time: new Date() }));
+// Metrics endpoint for Prometheus
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', metrics.client.register.contentType);
+    res.end(await metrics.client.register.metrics());
+  } catch (err) {
+    res.status(500).end(err.message);
+  }
+});
 
 // API Docs
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
